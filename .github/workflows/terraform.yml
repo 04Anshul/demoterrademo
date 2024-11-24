@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # AWS secrets
-      AWS_DEMO_ACCESS_KEY_ID: ${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}
-      AWS_DEMO_SECRET_ACCESS_KEY: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
-    environment: devlopment
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
+    environment: production
 
     steps:
       # Checkout the repository to the GitHub Actions runner
@@ -21,7 +21,7 @@ jobs:
 
       # Initialize a new or existing Terraform working directory
       - name: Terraform Init
-        uses: hashicorp/terraform-github-actions@master
+        uses: hashicorp/terraform-github-actions@v2
         with:
           tf_actions_version: 1.9.8
           tf_actions_subcommand: "init"
@@ -31,7 +31,7 @@ jobs:
 
       # Run Terraform plan
       - name: Terraform plan
-        uses: hashicorp/terraform-github-actions@master
+        uses: hashicorp/terraform-github-actions@v2
         with:
           tf_actions_version: 1.9.8
           tf_actions_subcommand: "plan"
@@ -41,13 +41,10 @@ jobs:
 
       # Run Terraform apply
       - name: Terraform apply
-        uses: hashicorp/terraform-github-actions@master
+        uses: hashicorp/terraform-github-actions@v2
         with:
           tf_actions_version: 1.9.8
           tf_actions_subcommand: "apply"
           tf_actions_working_dir: "."
           tf_actions_comment: true
           args: '-auto-approve -lock=false'
-    
-        
-
