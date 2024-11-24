@@ -15,24 +15,6 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
-# Initial volume sizes and size change variables
-variable "initial_root_size" {
-  description = "Initial size of the root volume in GiB"
-  type        = number
-  default     = 8
-}
-
-variable "initial_external_size" {
-  description = "Initial size of the external volume in GiB"
-  type        = number
-  default     = 10
-}
-
-variable "size_change" {
-  description = "Amount of size to move from external to root volume in GiB"
-  type        = number
-  default     = 5
-}
 
 # Calculate new sizes
 locals {
@@ -91,7 +73,6 @@ resource "aws_route_table" "public_route_table" {
   }
 }
 
-
 resource "aws_route_table_association" "public_subnet_association" {
   subnet_id      = aws_subnet.public_subnet.id
   route_table_id = aws_route_table.public_route_table.id
@@ -106,7 +87,7 @@ resource "aws_security_group" "allow_ssh" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]  # Change this to a specific IP for security purposes
   }
 
   egress {
@@ -117,14 +98,12 @@ resource "aws_security_group" "allow_ssh" {
   }
 }
 
-
-# EC2 instance in public subnet
 resource "aws_instance" "web" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.instance_type
-  key_name               = "ec2_key"
+  key_name               = "keyseoul"
   subnet_id              = aws_subnet.public_subnet.id
-   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
+  vpc_security_group_ids = [aws_security_group.allow_ssh.id]
 
   root_block_device {
     volume_size = local.new_root_size
@@ -135,7 +114,7 @@ resource "aws_instance" "web" {
               #!/bin/bash
               sudo apt update -y && sudo apt upgrade -y
               sudo apt install openjdk-11-jdk -y
-              curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+              curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - 
               sudo apt install -y nodejs
               java -version
               node -v
@@ -155,7 +134,6 @@ resource "aws_instance" "web" {
   }
 }
 
-# External EBS volume
 resource "aws_ebs_volume" "external_disk_1" {
   availability_zone = "ap-northeast-2a"
   size              = local.new_external_size
@@ -164,28 +142,11 @@ resource "aws_ebs_volume" "external_disk_1" {
   }
 }
 
-# Attach the external EBS volume to the EC2 instance
 resource "aws_volume_attachment" "ebs_attachment_1" {
   device_name = "/dev/xvdh"
   volume_id   = aws_ebs_volume.external_disk_1.id
   instance_id = aws_instance.web.id
-  force_detach = true
 }
-
-# # DynamoDB table
-# resource "aws_dynamodb_table" "terraform_locks" {
-#   name         = "terraform-state-lock"
-#   billing_mode = "PAY_PER_REQUEST"
-#   hash_key     = "LockID"
-#   tags = {
-#     Name = "TerraformLocks"
-#   }
-
-#   attribute {
-#     name = "LockID"
-#     type = "S"
-#   }
-# }
 
 resource "aws_iam_role" "dynamo_role" {
   name               = "DynamoDBAccessRole"
@@ -222,21 +183,20 @@ resource "aws_iam_role_policy_attachment" "dynamo_attachment" {
   policy_arn = aws_iam_policy.dynamo_policy.arn
 }
 
-
 resource "aws_dynamodb_table" "products" {
-  name           = "products"  # Table name
-  billing_mode   = "PAY_PER_REQUEST"  # Free tier billing mode (on-demand)
-  hash_key       = "id"  # Partition key
-  range_key      = "barcode"  # Sort key
+  name           = "products"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "id"
+  range_key      = "barcode"
 
   attribute {
     name = "id"
-    type = "S"  # String type for id
+    type = "S"
   }
 
   attribute {
     name = "barcode"
-    type = "S"  # String type for barcode
+    type = "S"
   }
 
   attribute {
@@ -249,13 +209,10 @@ resource "aws_dynamodb_table" "products" {
     type = "S"
   }
 
-  attribute {
-    name = "price"
-    type = "S"
+  global_secondary_index {
+    name               = "DescriptionNamePriceIndex"
+    hash_key           = "name"
+    range_key          = "description"
+    projection_type    = "ALL"
   }
-
-  # Optional: Auto-scaling for provisioned throughput (but PAY_PER_REQUEST mode doesn't need this)
-  # stream_enabled   = false
-  # point_in_time_recovery = false
 }
-

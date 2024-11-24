@@ -8,20 +8,16 @@ jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
+    env:
+      # AWS secrets
+      AWS_DEVOPS_ACCESS_KEY_ID: ${{ secrets.AWS_DEVOPS_ACCESS_KEY_ID }}
+      AWS_DEVOPS_SECRET_ACCESS_KEY: ${{ secrets.AWS_DEVOPS_SECRET_ACCESS_KEY }}
     environment: devlopment
 
     steps:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout
         uses: actions/checkout@v4
-
-        # Configure AWS credentials for the workflow
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_IDS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEYES }}
-          aws-region: "ap-northeast-2"  # Update to your region
 
       # Initialize a new or existing Terraform working directory
       - name: Terraform Init
