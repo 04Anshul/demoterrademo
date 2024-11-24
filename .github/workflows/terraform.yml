@@ -1,0 +1,57 @@
+name: 'Terraform'
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    environment: devlopment
+
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
+
+        # Configure AWS credentials for the workflow
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "ap-northeast-2"  # Update to your region
+
+      # Initialize a new or existing Terraform working directory
+      - name: Terraform Init
+        uses: hashicorp/terraform-github-actions@master
+        with:
+          tf_actions_version: 1.9.8
+          tf_actions_subcommand: "init"
+          tf_actions_working_dir: "."
+          tf_actions_comment: true
+          args: '-var="instance_type=t2.micro"'
+
+      # Run Terraform plan
+      - name: Terraform plan
+        uses: hashicorp/terraform-github-actions@master
+        with:
+          tf_actions_version: 1.9.8
+          tf_actions_subcommand: "plan"
+          tf_actions_working_dir: "."
+          tf_actions_comment: true
+          args: '-lock=false'
+
+      # Run Terraform apply
+      - name: Terraform apply
+        uses: hashicorp/terraform-github-actions@master
+        with:
+          tf_actions_version: 1.9.8
+          tf_actions_subcommand: "apply"
+          tf_actions_working_dir: "."
+          tf_actions_comment: true
+          args: '-auto-approve -lock=false'
+    
+        
+
