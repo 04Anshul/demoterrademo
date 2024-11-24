@@ -21,7 +21,7 @@ jobs:
 
       # Initialize a new or existing Terraform working directory
       - name: Terraform Init
-        uses: hashicorp/terraform-github-actions@v2
+        uses: hashicorp/terraform-github-actions@master
         with:
           tf_actions_version: 1.9.8
           tf_actions_subcommand: "init"
@@ -31,7 +31,7 @@ jobs:
 
       # Run Terraform plan
       - name: Terraform plan
-        uses: hashicorp/terraform-github-actions@v2
+        uses: hashicorp/terraform-github-actions@master
         with:
           tf_actions_version: 1.9.8
           tf_actions_subcommand: "plan"
@@ -41,10 +41,13 @@ jobs:
 
       # Run Terraform apply
       - name: Terraform apply
-        uses: hashicorp/terraform-github-actions@v2
+        uses: hashicorp/terraform-github-actions@master
         with:
           tf_actions_version: 1.9.8
           tf_actions_subcommand: "apply"
           tf_actions_working_dir: "."
           tf_actions_comment: true
           args: '-auto-approve -lock=false'
+    
+        
+
