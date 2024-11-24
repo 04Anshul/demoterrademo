@@ -20,7 +20,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_IDS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEYS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEYES }}
           aws-region: "ap-northeast-2"  # Update to your region
 
       # Initialize a new or existing Terraform working directory
